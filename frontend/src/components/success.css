@@ -1,0 +1,28 @@
+.successful{
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+}
+body{
+    background-color: white;
+}
+.successmsg{
+    text-align: center;
+}
+.backbtn {
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    border-radius: 20px;
+}
+button:hover {
+    background-color:#4D4949;
+  }
+
+.gif{
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
