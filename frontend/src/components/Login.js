@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './login.css';
-import { useNavigate } from "react-router-dom";
+import {useLocation, useNavigate } from "react-router-dom";
+
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ const Login = () => {
   const navigate= useNavigate();
   const handleSubmit = (e) => {
     e.preventDefault();
+    navigate("/success")
     // backend logic here
     /* if successful use this to navigate to the success page
     navigate("/success");
@@ -41,6 +43,7 @@ const Login = () => {
           />
           <button type="submit">Login</button>
         </form>
+        
       </div>
      
     </div>
