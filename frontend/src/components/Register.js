@@ -3,13 +3,15 @@ import './login.css';
 import {useLocation, useNavigate } from "react-router-dom";
 
 
-const Login = () => {
+const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const navigate= useNavigate();
   const backToLogin = (e) => {
     e.preventDefault();
-    navigate("/register");
+    navigate("/");
   }
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -30,9 +32,21 @@ const Login = () => {
         <h4 className='desc'>We are students from class L4AC Computer Science. This is our assignment for Web Application Development and Security on the topic of OAuth2 with FastAPI. This project is referencing the tutorial and the documentation from https://fastapi.tiangolo.com/tutorial/security/.</h4>
       </div>
       <div className='loginbox'>
-        <h2 className='logintitle'>Login</h2>
-        <h3 className='logindesc'>Welcome back, login to your account now.</h3>
+        <h2 className='logintitle'>Sign up</h2>
+        <h3 className='logindesc'>Welcome back, create an account now.</h3>
         <form onSubmit={handleSubmit}>
+          <input
+            type="username"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            type="name"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
           <input
             type="email"
             placeholder="Email"
@@ -45,9 +59,8 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button type="submit">Login</button>
-          <button style={{marginTop:"10px", backgroundcolor:"grey"}} onClick={backToLogin} >Create a new account</button>
-
+          <button type="submit">Sign Up</button>
+          <button style={{marginTop:"10px", backgroundcolor:"grey"}} onClick={backToLogin} >Back to login page</button>
         </form>
         
       </div>
@@ -56,4 +69,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;
