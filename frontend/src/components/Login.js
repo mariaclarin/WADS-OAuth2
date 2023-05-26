@@ -2,23 +2,24 @@ import React, { useState } from 'react';
 import './login.css';
 import {useLocation, useNavigate } from "react-router-dom";
 
-
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate= useNavigate();
-  const backToLogin = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/register");
-  }
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    navigate("/success")
+    try {
+      const response = await axios.post('http://localhost:8000/login', {username, password}, {headers: {'content-type':'application/x-www-form-urlencoded;charset=UTF-8'}});
+      const token = response.data.access_token;
+      localStorage.setItem('token', token);
+      navigate("/success");
+    } catch (error) {
+      console.log(error);
+    }
     // backend logic here
     /* if successful use this to navigate to the success page
     navigate("/success");
     */
-
   };
 
   return (
@@ -46,8 +47,6 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
           <button type="submit">Login</button>
-          <button style={{marginTop:"10px", backgroundcolor:"grey"}} onClick={backToLogin} >Create a new account</button>
-
         </form>
         
       </div>
