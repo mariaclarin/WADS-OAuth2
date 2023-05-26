@@ -13,14 +13,20 @@ const Register = () => {
     e.preventDefault();
     navigate("/");
   }
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate("/success")
+    try {
+        const response = await axios.post('http://localhost:8000/signup', {email, full_name, password}, {headers: { 'content-type': 'application/json' }});
+        const token = response.data.access_token;
+        localStorage.setItem('token', token);
+        navigate("/success");
+    } catch (error) {
+        console.log(error);
+    }
     // backend logic here
     /* if successful use this to navigate to the success page
     navigate("/success");
     */
-
   };
 
   return (
