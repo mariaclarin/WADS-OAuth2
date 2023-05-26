@@ -7,22 +7,15 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
+import sqlite3
+from sqlite3 import Error
+
+
 # to get a string like this run:
 # openssl rand -hex 32
 SECRET_KEY = "asecretkeysisasecretkeysothisisasecret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
 
 
 class Token(BaseModel):
@@ -52,6 +45,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 app = FastAPI()
 
 
+def create_connection():
+    conn = None
+    try:
+        conn = sqlite3.connect('login.db')
+        print(f"Connected to SQLite database")
+        return conn
+    except Error as e:
+        print(e)
+
+    return conn
+
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -60,14 +65,34 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+def get_user(username: str):
+    conn = create_connection()
+    if conn is not None:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE username=?", (username,))
+            row = cursor.fetchone()
+
+            if row is not None:
+                user_dict = {
+                    "username": row[1],
+                    "full_name": row[2],
+                    "email": row[3],
+                    "hashed_password": row[4],
+                    "disabled": row[5]
+                }
+                return UserInDB(**user_dict)
+
+        except Error as e:
+            print(e)
+        finally:
+            conn.close()
+
+    return None
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(username: str, password: str):
+    user = get_user(username)
     if not user:
         return False
     if not verify_password(password, user.hashed_password):
@@ -100,7 +125,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
+    user = get_user(token_data.username)
     if user is None:
         raise credentials_exception
     return user
@@ -118,7 +143,7 @@ async def get_current_active_user(
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
