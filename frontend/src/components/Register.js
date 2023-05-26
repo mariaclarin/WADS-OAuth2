@@ -3,7 +3,7 @@ import './login.css';
 import {useLocation, useNavigate } from "react-router-dom";
 
 
-const Signup = () => {
+const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -69,4 +69,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Register;

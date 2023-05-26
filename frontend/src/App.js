@@ -2,7 +2,7 @@ import React from 'react';
 import Login from './components/Login';
 import { BrowserRouter as Router, Route, Routes,useLocation, Navigate } from "react-router-dom";
 import Success from './components/Success';
-import Signup from './components/Register';
+import Register from './components/Register';
 
 const setToken = (token) => {
   localStorage.setItem('key', token);
@@ -29,7 +29,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Signup />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/success"
           element={
