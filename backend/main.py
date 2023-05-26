@@ -1,13 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Annotated
-
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from . import schemas, crud, models
-from .database import get_db
+import schemas, crud, models
+from database import get_db
 from fastapi import Body, Depends
 from sqlalchemy.orm import Session
 import sqlite3
@@ -16,27 +15,6 @@ from sqlite3 import Error
 SECRET_KEY = "asecretkeysisasecretkeysothisisasecret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: str | None = None
-
-
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -80,7 +58,7 @@ def get_user(username: str):
                     "password": row[3],
                     "disabled": row[4]
                 }
-                return UserInDB(**user_dict)
+                return schemas.UserInDB(**user_dict)
 
         except Error as e:
             print(e)
@@ -121,7 +99,7 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = schemas.TokenData(username=username)
     except JWTError:
         raise credentials_exception
     user = get_user(token_data.username)
@@ -131,14 +109,14 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
 
 
 async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)]
+    current_user: Annotated[schemas.Users, Depends(get_current_user)]
 ):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
-@app.post("/login", response_model=Token)
+@app.post("/login", response_model=schemas.Token)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -156,7 +134,7 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/users/me/", response_model=User)
+@app.get("/users/me/", response_model=schemas.Users)
 async def read_users_me(
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
