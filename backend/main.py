@@ -6,13 +6,13 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-
+from . import schemas, crud, models
+from .database import get_db
+from fastapi import Body, Depends
+from sqlalchemy.orm import Session
 import sqlite3
 from sqlite3 import Error
 
-
-# to get a string like this run:
-# openssl rand -hex 32
 SECRET_KEY = "asecretkeysisasecretkeysothisisasecret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -75,11 +75,10 @@ def get_user(username: str):
 
             if row is not None:
                 user_dict = {
-                    "username": row[1],
-                    "full_name": row[2],
-                    "email": row[3],
-                    "hashed_password": row[4],
-                    "disabled": row[5]
+                    "user_id": row[1],
+                    "email": row[2],
+                    "password": row[3],
+                    "disabled": row[4]
                 }
                 return UserInDB(**user_dict)
 
@@ -139,7 +138,7 @@ async def get_current_active_user(
     return current_user
 
 
-@app.post("/token", response_model=Token)
+@app.post("/login", response_model=Token)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -163,9 +162,19 @@ async def read_users_me(
 ):
     return current_user
 
-
-@app.get("/users/me/items/")
-async def read_own_items(
-    current_user: Annotated[User, Depends(get_current_active_user)]
+@app.get("/signup/")
+async def signup(
+    payload: schemas.CreateUserSchema = Body(), 
+    session: Session = Depends(get_db),
+    users: schemas.Users = Body()
 ):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+    payload.hashed_password = models.User.password(payload.hashed_password)
+    return crud.create_user(session, user = users, password = payload)
+
+@app.get("/delete/{user_id}")
+async def delete(
+    id: int,
+    token: str = Depends(oauth2_scheme),
+    session: Session = Depends(get_db)
+):
+    return crud.delete_user(session = session, user_id = id)
